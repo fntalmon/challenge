@@ -15,6 +15,9 @@ Route::prefix('api')->middleware('api')->group(function () {
     // Punto 3: Crear reserva
     Route::post('/reservations', [ReservationController::class, 'store']);
     
+    // Cancelar reserva
+    Route::patch('/reservations/{id}/cancel', [ReservationController::class, 'cancel']);
+    
     // Punto 4: Listar reservas por fecha
     Route::get('/reservations/by-date', [ReservationController::class, 'listByDate']);
     

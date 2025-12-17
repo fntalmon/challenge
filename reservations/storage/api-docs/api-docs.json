@@ -173,6 +173,119 @@
                 }
             }
         },
+        "/reservations/{id}/cancel": {
+            "patch": {
+                "tags": [
+                    "Reservations"
+                ],
+                "summary": "Cancelar reserva",
+                "description": "Cancela una reserva existente. Solo se pueden cancelar reservas futuras que no estén ya canceladas",
+                "operationId": "04d6d9eef11740b453ebda17711b7f55",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la reserva a cancelar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reserva cancelada exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Reserva cancelada exitosamente"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "cancelled"
+                                                },
+                                                "reservation_date": {
+                                                    "type": "string",
+                                                    "example": "2025-12-24"
+                                                },
+                                                "reservation_time": {
+                                                    "type": "string",
+                                                    "example": "19:00"
+                                                },
+                                                "party_size": {
+                                                    "type": "integer",
+                                                    "example": 4
+                                                },
+                                                "location": {
+                                                    "type": "string",
+                                                    "example": "A"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Reserva no encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Reserva no encontrada"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error al cancelar (ya cancelada o reserva pasada)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "La reserva ya está cancelada"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/tables/availability": {
             "get": {
                 "tags": [

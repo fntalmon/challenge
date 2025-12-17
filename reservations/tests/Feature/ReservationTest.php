@@ -553,4 +553,135 @@ class ReservationTest extends TestCase
         $reservation = Reservation::orderByDesc('id')->first();
         $this->assertEquals('A', $reservation->location);
     }
+
+    /** @test */
+    public function puede_cancelar_reserva_futura()
+    {
+        $user = User::first();
+        $futureDate = Carbon::now()->addDays(7)->format('Y-m-d');
+        
+        // Crear reserva
+        $response = $this->postJson('/api/reservations', [
+            'user_id' => $user->id,
+            'reservation_date' => $futureDate,
+            'reservation_time' => '14:00',
+            'party_size' => 2,
+        ]);
+        
+        $reservationId = $response->json('data.id');
+        
+        // Cancelar reserva
+        $cancelResponse = $this->patchJson("/api/reservations/{$reservationId}/cancel");
+        
+        $cancelResponse->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'Reserva cancelada exitosamente',
+            ]);
+        
+        // Verificar en base de datos
+        $this->assertDatabaseHas('reservations', [
+            'id' => $reservationId,
+            'status' => 'cancelled',
+        ]);
+    }
+
+    /** @test */
+    public function no_puede_cancelar_reserva_inexistente()
+    {
+        $response = $this->patchJson('/api/reservations/99999/cancel');
+        
+        $response->assertStatus(404)
+            ->assertJson([
+                'success' => false,
+                'message' => 'Reserva no encontrada',
+            ]);
+    }
+
+    /** @test */
+    public function no_puede_cancelar_reserva_ya_cancelada()
+    {
+        $user = User::first();
+        $futureDate = Carbon::now()->addDays(7)->format('Y-m-d');
+        
+        // Crear y cancelar reserva
+        $reservation = Reservation::create([
+            'user_id' => $user->id,
+            'reservation_date' => $futureDate,
+            'reservation_time' => '14:00',
+            'party_size' => 2,
+            'location' => 'A',
+            'duration_minutes' => 120,
+            'status' => 'cancelled',
+        ]);
+        
+        // Intentar cancelar nuevamente
+        $response = $this->patchJson("/api/reservations/{$reservation->id}/cancel");
+        
+        $response->assertStatus(422)
+            ->assertJson([
+                'success' => false,
+                'message' => 'La reserva ya está cancelada',
+            ]);
+    }
+
+    /** @test */
+    public function no_puede_cancelar_reserva_pasada()
+    {
+        $user = User::first();
+        $pastDate = Carbon::now()->subDays(1)->format('Y-m-d');
+        
+        // Crear reserva en el pasado
+        $reservation = Reservation::create([
+            'user_id' => $user->id,
+            'reservation_date' => $pastDate,
+            'reservation_time' => '14:00',
+            'party_size' => 2,
+            'location' => 'A',
+            'duration_minutes' => 120,
+            'status' => 'confirmed',
+        ]);
+        
+        // Intentar cancelar
+        $response = $this->patchJson("/api/reservations/{$reservation->id}/cancel");
+        
+        $response->assertStatus(422)
+            ->assertJson([
+                'success' => false,
+                'message' => 'No se puede cancelar una reserva pasada',
+            ]);
+    }
+
+    /** @test */
+    public function cancelacion_libera_mesas_reservadas()
+    {
+        $user = User::first();
+        $futureDate = Carbon::now()->addDays(7)->format('Y-m-d');
+        
+        // Crear reserva para 4 personas
+        $createResponse = $this->postJson('/api/reservations', [
+            'user_id' => $user->id,
+            'reservation_date' => $futureDate,
+            'reservation_time' => '14:00',
+            'party_size' => 4,
+        ]);
+        
+        $reservationId = $createResponse->json('data.id');
+        
+        // Verificar que la reserva tiene mesas asignadas
+        $reservation = Reservation::with('tables')->find($reservationId);
+        $this->assertCount(1, $reservation->tables); // 1 mesa de capacidad 4
+        $this->assertEquals('confirmed', $reservation->status);
+        
+        // Cancelar reserva
+        $cancelResponse = $this->patchJson("/api/reservations/{$reservationId}/cancel");
+        $cancelResponse->assertStatus(200);
+        
+        // Verificar que el estado cambió a cancelled
+        $reservation->refresh();
+        $this->assertEquals('cancelled', $reservation->status);
+        
+        // Verificar que las mesas siguen asociadas pero la reserva está cancelada
+        $this->assertCount(1, $reservation->tables);
+    }
 }

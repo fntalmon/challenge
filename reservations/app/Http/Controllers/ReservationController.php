@@ -95,6 +95,75 @@ class ReservationController extends Controller
         }
     }
 
+    /**
+     * Cancelar una reserva existente
+     * 
+     * @OA\Patch(
+     *     path="/reservations/{id}/cancel",
+     *     tags={"Reservations"},
+     *     summary="Cancelar reserva",
+     *     description="Cancela una reserva existente. Solo se pueden cancelar reservas futuras que no estén ya canceladas",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID de la reserva a cancelar",
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Reserva cancelada exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Reserva cancelada exitosamente"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="status", type="string", example="cancelled"),
+     *                 @OA\Property(property="reservation_date", type="string", example="2025-12-24"),
+     *                 @OA\Property(property="reservation_time", type="string", example="19:00"),
+     *                 @OA\Property(property="party_size", type="integer", example=4),
+     *                 @OA\Property(property="location", type="string", example="A")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Reserva no encontrada",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Reserva no encontrada")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Error al cancelar (ya cancelada o reserva pasada)",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="La reserva ya está cancelada")
+     *         )
+     *     )
+     * )
+     */
+    public function cancel(int $id)
+    {
+        try {
+            $reservation = $this->reservationService->cancelReservation($id);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Reserva cancelada exitosamente',
+                'data' => $reservation,
+            ], 200);
+        } catch (\Exception $e) {
+            $statusCode = str_contains($e->getMessage(), 'no encontrada') ? 404 : 422;
+            
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $statusCode);
+        }
+    }
+
     public function index()
     {
         $reservations = Reservation::all();

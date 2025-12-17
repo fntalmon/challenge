@@ -366,4 +366,35 @@ class ReservationService
             'tables_by_location' => $result,
         ];
     }
+
+    /**
+     * Cancelar una reserva existente
+     */
+    public function cancelReservation(int $reservationId): Reservation
+    {
+        $reservation = Reservation::with('tables')->find($reservationId);
+        
+        if (!$reservation) {
+            throw new \Exception('Reserva no encontrada');
+        }
+        
+        if ($reservation->status === 'cancelled') {
+            throw new \Exception('La reserva ya está cancelada');
+        }
+        
+        // Validar que la reserva es futura (no se puede cancelar una reserva pasada o en curso)
+        $reservationDate = Carbon::parse($reservation->reservation_date)->format('Y-m-d');
+        $reservationDateTime = Carbon::parse($reservationDate . ' ' . $reservation->reservation_time);
+        if ($reservationDateTime->isPast()) {
+            throw new \Exception('No se puede cancelar una reserva pasada');
+        }
+        
+        // Actualizar estado
+        $reservation->update(['status' => 'cancelled']);
+        
+        // Invalidar caché de disponibilidad
+        $this->clearAvailabilityCache($reservation->location, $reservationDate);
+        
+        return $reservation->fresh('tables');
+    }
 }
