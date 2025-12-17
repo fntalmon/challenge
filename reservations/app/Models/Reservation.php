@@ -20,7 +20,6 @@ class Reservation extends Model
 
     protected $casts = [
         'reservation_date' => 'date',
-        'reservation_time' => 'datetime:H:i',
     ];
 
     // Constantes de horarios por día
