@@ -21,13 +21,8 @@ return [
                 'use_absolute_path' => env('L5_SWAGGER_USE_ABSOLUTE_PATH', true),
 
                 /*
-                * Edit to set path where swagger ui assets should be stored
+                * File name of the generated json documentation file
                 */
-                'swagger_ui_assets_path' => env('L5_SWAGGER_UI_ASSETS_PATH', 'vendor/swagger-api/swagger-ui/dist/'),
-
-                /*
-                 * File name of the generated json documentation file
-                 */
                 'docs_json' => 'api-docs.json',
 
                 /*
