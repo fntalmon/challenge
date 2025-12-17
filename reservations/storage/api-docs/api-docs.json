@@ -1,0 +1,416 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Reservations API",
+        "description": "Sistema de reservas de mesas con asignación automática de ubicación y combinación inteligente de mesas",
+        "contact": {
+            "name": "Federico",
+            "email": "federico@example.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api",
+            "description": "API Server"
+        }
+    ],
+    "paths": {
+        "/reservations": {
+            "post": {
+                "tags": [
+                    "Reservations"
+                ],
+                "summary": "Crear nueva reserva",
+                "description": "Crea una reserva con asignación automática de ubicación (A→B→C→D) y combinación óptima de hasta 3 mesas",
+                "operationId": "1aabc7d432cc652e63cfc3fb514132cd",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_id",
+                                    "reservation_date",
+                                    "reservation_time",
+                                    "party_size"
+                                ],
+                                "properties": {
+                                    "user_id": {
+                                        "description": "ID del usuario",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "reservation_date": {
+                                        "description": "Fecha de la reserva (YYYY-MM-DD)",
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-12-24"
+                                    },
+                                    "reservation_time": {
+                                        "description": "Hora de la reserva (HH:mm). L-V: 10:00-24:00, Sáb: 22:00-02:00, Dom: 12:00-16:00",
+                                        "type": "string",
+                                        "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$",
+                                        "example": "19:00"
+                                    },
+                                    "party_size": {
+                                        "description": "Cantidad de personas (máximo 18: 3 mesas × 6 personas)",
+                                        "type": "integer",
+                                        "maximum": 18,
+                                        "minimum": 1,
+                                        "example": 4
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Reserva creada exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Reserva creada exitosamente"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "reservation_date": {
+                                                    "type": "string",
+                                                    "example": "2025-12-24"
+                                                },
+                                                "reservation_time": {
+                                                    "type": "string",
+                                                    "example": "19:00"
+                                                },
+                                                "party_size": {
+                                                    "type": "integer",
+                                                    "example": 4
+                                                },
+                                                "location": {
+                                                    "description": "Ubicación asignada automáticamente",
+                                                    "type": "string",
+                                                    "example": "A"
+                                                },
+                                                "duration_minutes": {
+                                                    "description": "Duración por defecto: 2 horas",
+                                                    "type": "integer",
+                                                    "example": 120
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "confirmed"
+                                                },
+                                                "tables": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 3
+                                                            },
+                                                            "location": {
+                                                                "type": "string",
+                                                                "example": "A"
+                                                            },
+                                                            "table_number": {
+                                                                "type": "integer",
+                                                                "example": 3
+                                                            },
+                                                            "capacity": {
+                                                                "type": "integer",
+                                                                "example": 4
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación o sin disponibilidad",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No hay mesas disponibles para la fecha y hora solicitada"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/tables/availability": {
+            "get": {
+                "tags": [
+                    "Tables"
+                ],
+                "summary": "Consultar disponibilidad de mesas",
+                "description": "Obtiene el estado (disponible/ocupada) de todas las mesas para una fecha y hora específica, agrupadas por ubicación",
+                "operationId": "9d84769c95fa9e16c81d9835dbbeb2c9",
+                "parameters": [
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "description": "Fecha a consultar (YYYY-MM-DD)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2025-12-24"
+                        }
+                    },
+                    {
+                        "name": "time",
+                        "in": "query",
+                        "description": "Hora a consultar (HH:mm)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$",
+                            "example": "19:00"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Estado de disponibilidad",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "date": {
+                                            "type": "string",
+                                            "example": "2025-12-24"
+                                        },
+                                        "time": {
+                                            "type": "string",
+                                            "example": "19:00"
+                                        },
+                                        "summary": {
+                                            "properties": {
+                                                "total_tables": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                },
+                                                "available": {
+                                                    "type": "integer",
+                                                    "example": 15
+                                                },
+                                                "occupied": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "tables_by_location": {
+                                            "properties": {
+                                                "A": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "table_number": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "capacity": {
+                                                                "type": "integer",
+                                                                "example": 2
+                                                            },
+                                                            "status": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "available",
+                                                                    "occupied"
+                                                                ],
+                                                                "example": "occupied"
+                                                            },
+                                                            "reservation": {
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "integer",
+                                                                        "example": 5
+                                                                    },
+                                                                    "user_name": {
+                                                                        "type": "string",
+                                                                        "example": "Juan Pérez"
+                                                                    },
+                                                                    "party_size": {
+                                                                        "type": "integer",
+                                                                        "example": 2
+                                                                    },
+                                                                    "time_range": {
+                                                                        "type": "string",
+                                                                        "example": "19:00 - 21:00"
+                                                                    }
+                                                                },
+                                                                "type": "object",
+                                                                "nullable": true
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                }
+            }
+        },
+        "/reservations/by-date": {
+            "get": {
+                "tags": [
+                    "Reservations"
+                ],
+                "summary": "Listar reservas por fecha",
+                "description": "Obtiene todas las reservas de una fecha específica con sus mesas asignadas, agrupadas por ubicación. Usa una única query SQL optimizada con JOINs",
+                "operationId": "5657d5dc69fbed97a98fbae3f9ceeb1c",
+                "parameters": [
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "description": "Fecha a consultar (YYYY-MM-DD)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2025-12-24"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Listado de reservas agrupadas por ubicación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "date": {
+                                            "type": "string",
+                                            "example": "2025-12-24"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "A": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "reservation_id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "location": {
+                                                                "type": "string",
+                                                                "example": "A"
+                                                            },
+                                                            "reservation_time": {
+                                                                "type": "string",
+                                                                "example": "19:00"
+                                                            },
+                                                            "party_size": {
+                                                                "type": "integer",
+                                                                "example": 8
+                                                            },
+                                                            "status": {
+                                                                "type": "string",
+                                                                "example": "confirmed"
+                                                            },
+                                                            "user_name": {
+                                                                "type": "string",
+                                                                "example": "Juan Pérez"
+                                                            },
+                                                            "user_email": {
+                                                                "type": "string",
+                                                                "example": "juan@example.com"
+                                                            },
+                                                            "tables": {
+                                                                "description": "Mesas asignadas concatenadas",
+                                                                "type": "string",
+                                                                "example": "A-3, A-4"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Reservations",
+            "description": "Gestión de reservas"
+        },
+        {
+            "name": "Tables",
+            "description": "Consulta de disponibilidad de mesas"
+        }
+    ]
+}
