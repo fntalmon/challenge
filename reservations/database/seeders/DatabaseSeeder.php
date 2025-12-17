@@ -25,6 +25,6 @@ class DatabaseSeeder extends Seeder
         User::factory(5)->create();
         
         // Crear mesas
-        $this->call(TableSeeder::class);
+        $this->call(TablesSeeder::class);
     }
 }
