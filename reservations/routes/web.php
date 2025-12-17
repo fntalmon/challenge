@@ -11,17 +11,6 @@ Route::get('/', function () {
 Route::prefix('api')->middleware('api')->group(function () {
 
     Route::get('/allReservations', [ReservationController::class, 'index']);
-    
-    // Endpoint temporal para inicializar datos
-    Route::post('/init-data', function () {
-        \Artisan::call('db:seed', ['--force' => true]);
-        return response()->json([
-            'success' => true,
-            'message' => 'Datos inicializados',
-            'users_count' => \App\Models\User::count(),
-            'tables_count' => \App\Models\Table::count(),
-        ]);
-    });
 
     // Punto 3: Crear reserva
     Route::post('/reservations', [ReservationController::class, 'store']);

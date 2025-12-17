@@ -15,14 +15,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Crear usuario de prueba
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-        
-        // Crear usuarios adicionales para probar reservas
-        User::factory(5)->create();
+        // Crear usuarios solo si no existen
+        if (User::count() === 0) {
+            // Crear usuario de prueba
+            User::factory()->create([
+                'name' => 'Test User',
+                'email' => 'test@example.com',
+            ]);
+            
+            // Crear usuarios adicionales para probar reservas
+            User::factory(5)->create();
+        }
         
         // Crear mesas
         $this->call(TablesSeeder::class);
