@@ -72,6 +72,18 @@ class ReservationController extends Controller
             'reservation_date' => 'required|date|after_or_equal:today',
             'reservation_time' => 'required|date_format:H:i',
             'party_size' => 'required|integer|min:1|max:18', // máximo 3 mesas x 6 personas
+        ], [
+            'user_id.required' => 'El ID de usuario es obligatorio',
+            'user_id.exists' => 'El usuario especificado no existe',
+            'reservation_date.required' => 'La fecha de reserva es obligatoria',
+            'reservation_date.date' => 'La fecha de reserva debe ser una fecha válida',
+            'reservation_date.after_or_equal' => 'La fecha de reserva no puede ser anterior a hoy',
+            'reservation_time.required' => 'La hora de reserva es obligatoria',
+            'reservation_time.date_format' => 'La hora de reserva debe estar en formato HH:mm',
+            'party_size.required' => 'El número de personas es obligatorio',
+            'party_size.integer' => 'El número de personas debe ser un número entero',
+            'party_size.min' => 'Debe haber al menos 1 persona',
+            'party_size.max' => 'El máximo es 18 personas (3 mesas de 6)',
         ]);
 
         try {
@@ -228,6 +240,11 @@ class ReservationController extends Controller
         $validated = $request->validate([
             'date' => 'required|date',
             'time' => 'required|date_format:H:i',
+        ], [
+            'date.required' => 'La fecha es obligatoria',
+            'date.date' => 'La fecha debe ser una fecha válida',
+            'time.required' => 'La hora es obligatoria',
+            'time.date_format' => 'La hora debe estar en formato HH:mm',
         ]);
 
         $data = $this->reservationService->getTablesAvailability(
@@ -286,13 +303,16 @@ class ReservationController extends Controller
     {
         $validated = $request->validate([
             'date' => 'required|date',
+        ], [
+            'date.required' => 'La fecha es obligatoria',
+            'date.date' => 'La fecha debe ser una fecha válida',
         ]);
 
         $reservations = DB::table('reservations as r')
             ->join('reservation_table as rt', 'r.id', '=', 'rt.reservation_id')
             ->join('tables as t', 'rt.table_id', '=', 't.id')
             ->join('users as u', 'r.user_id', '=', 'u.id')
-            ->where('r.reservation_date', $validated['date'])
+            ->whereRaw('DATE(r.reservation_date) = ?', [$validated['date']])
             ->where('r.status', '!=', 'cancelled')
             ->select(
                 'r.id as reservation_id',
@@ -302,7 +322,7 @@ class ReservationController extends Controller
                 'r.status',
                 'u.name as user_name',
                 'u.email as user_email',
-                DB::raw('GROUP_CONCAT(t.location || "-" || t.table_number, ", ") as tables')
+                DB::raw("GROUP_CONCAT(t.location || '-' || t.table_number, ', ') as tables")
             )
             ->groupBy('r.id', 'r.location', 'r.reservation_time', 'r.party_size', 'r.status', 'u.name', 'u.email')
             ->orderBy('r.location')
