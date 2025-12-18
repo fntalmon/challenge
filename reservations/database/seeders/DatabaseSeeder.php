@@ -23,8 +23,8 @@ class DatabaseSeeder extends Seeder
                 'email' => 'test@example.com',
             ]);
             
-            // Crear usuarios adicionales para probar reservas
-            User::factory(5)->create();
+            // Crear usuarios adicionales para probar reservas (25 usuarios para tests completos)
+            User::factory(24)->create();
         }
         
         // Crear mesas

@@ -352,7 +352,7 @@ class ReservationTest extends TestCase
     {
         //$this->markTestSkipped('BUG: Overlap detection no funciona en tests - requiere investigación');
 
-        $user = User::first();
+        $users = User::limit(4)->get();
         $futureDate = $this->nextWeekdayDate();
 
         // Estrategia: llenar ubicación A con reservas no-solapantes para dejar capacidad limitada
@@ -361,7 +361,7 @@ class ReservationTest extends TestCase
         // 3 reservas en A a las 14:00 (ocupar 3 mesas)
         for ($i = 0; $i < 3; $i++) {
             $this->postJson('/api/reservations', [
-                'user_id' => $user->id,
+                'user_id' => $users[$i]->id,
                 'reservation_date' => $futureDate,
                 'reservation_time' => '14:00',
                 'party_size' => 4,
@@ -372,7 +372,7 @@ class ReservationTest extends TestCase
         // Ahora A tiene 2 mesas libres (2+2=4 o 2+6=8 dependiendo)
         // Pedir 12 personas → necesita 3 mesas, solo tiene 2 disponibles
         $response = $this->postJson('/api/reservations', [
-            'user_id' => $user->id,
+            'user_id' => $users[3]->id,
             'reservation_date' => $futureDate,
             'reservation_time' => '14:00',
             'party_size' => 12,
@@ -442,13 +442,14 @@ class ReservationTest extends TestCase
     /** @test */
     public function rechaza_cuando_no_hay_disponibilidad()
     {
-        $user = User::first();
+        // Crear 21 usuarios para este test
+        $users = User::factory(21)->create();
         $futureDate = $this->nextWeekdayDate();
 
         // Llenar todas las mesas con reservas para la misma hora
         for ($i = 0; $i < 20; $i++) {
             $this->postJson('/api/reservations', [
-                'user_id' => $user->id,
+                'user_id' => $users[$i]->id,
                 'reservation_date' => $futureDate,
                 'reservation_time' => '20:00',
                 'party_size' => 2,
@@ -457,7 +458,7 @@ class ReservationTest extends TestCase
 
         // La siguiente reserva debe ser rechazada (422)
         $response = $this->postJson('/api/reservations', [
-            'user_id' => $user->id,
+            'user_id' => $users[20]->id,
             'reservation_date' => $futureDate,
             'reservation_time' => '20:00',
             'party_size' => 2,
@@ -526,13 +527,13 @@ class ReservationTest extends TestCase
     /** @test */
     public function mantiene_orden_ubicaciones_con_capacidad_empatada()
     {
-        $user = User::first();
+        $users = User::limit(5)->get();
         $futureDate = $this->nextWeekdayDate();
 
         // Llenar ubicación A parcialmente (dejar 1 mesa de 2 personas)
         for ($i = 0; $i < 4; $i++) {
             $this->postJson('/api/reservations', [
-                'user_id' => $user->id,
+                'user_id' => $users[$i]->id,
                 'reservation_date' => $futureDate,
                 'reservation_time' => '16:00',
                 'party_size' => 2,
@@ -543,7 +544,7 @@ class ReservationTest extends TestCase
         // Pedir 6 personas → A puede con 1 mesa, B también
         // Debe elegir A por orden de prioridad
         $response = $this->postJson('/api/reservations', [
-            'user_id' => $user->id,
+            'user_id' => $users[4]->id,
             'reservation_date' => $futureDate,
             'reservation_time' => '16:00',
             'party_size' => 6,
@@ -683,5 +684,88 @@ class ReservationTest extends TestCase
         
         // Verificar que las mesas siguen asociadas pero la reserva está cancelada
         $this->assertCount(1, $reservation->tables);
+    }
+
+    /** @test */
+    public function no_permite_reserva_si_usuario_tiene_solapamiento()
+    {
+        $user = User::first();
+        $futureDate = Carbon::now()->addDays(7)->format('Y-m-d');
+        
+        // Crear primera reserva: 18:00 - 20:00
+        $this->postJson('/api/reservations', [
+            'user_id' => $user->id,
+            'reservation_date' => $futureDate,
+            'reservation_time' => '18:00',
+            'party_size' => 2,
+        ])->assertStatus(201);
+        
+        // Intentar reservar con solapamiento: 19:00 - 21:00 (solapa de 19:00 a 20:00)
+        $response = $this->postJson('/api/reservations', [
+            'user_id' => $user->id,
+            'reservation_date' => $futureDate,
+            'reservation_time' => '19:00',
+            'party_size' => 2,
+        ]);
+        
+        $response->assertStatus(422)
+            ->assertJsonFragment(['success' => false])
+            ->assertJsonPath('message', function ($message) {
+                return str_contains($message, 'Ya tienes una reserva confirmada en este horario');
+            });
+    }
+
+    /** @test */
+    public function permite_reserva_si_no_hay_solapamiento()
+    {
+        $user = User::first();
+        $futureDate = Carbon::now()->addDays(7)->format('Y-m-d');
+        
+        // Crear primera reserva: 18:00 - 20:00
+        $this->postJson('/api/reservations', [
+            'user_id' => $user->id,
+            'reservation_date' => $futureDate,
+            'reservation_time' => '18:00',
+            'party_size' => 2,
+        ])->assertStatus(201);
+        
+        // Crear segunda reserva sin solapamiento: 20:00 - 22:00
+        $response = $this->postJson('/api/reservations', [
+            'user_id' => $user->id,
+            'reservation_date' => $futureDate,
+            'reservation_time' => '20:00',
+            'party_size' => 2,
+        ]);
+        
+        $response->assertStatus(201);
+        
+        // Verificar que se crearon ambas reservas
+        $this->assertEquals(2, Reservation::where('user_id', $user->id)->count());
+    }
+
+    /** @test */
+    public function permite_reserva_a_diferentes_usuarios_mismo_horario()
+    {
+        $user1 = User::first();
+        $user2 = User::skip(1)->first();
+        $futureDate = Carbon::now()->addDays(7)->format('Y-m-d');
+        
+        // Usuario 1 reserva: 18:00
+        $this->postJson('/api/reservations', [
+            'user_id' => $user1->id,
+            'reservation_date' => $futureDate,
+            'reservation_time' => '18:00',
+            'party_size' => 2,
+        ])->assertStatus(201);
+        
+        // Usuario 2 puede reservar el mismo horario (distinto usuario)
+        $response = $this->postJson('/api/reservations', [
+            'user_id' => $user2->id,
+            'reservation_date' => $futureDate,
+            'reservation_time' => '18:00',
+            'party_size' => 2,
+        ]);
+        
+        $response->assertStatus(201);
     }
 }

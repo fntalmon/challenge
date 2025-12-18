@@ -21,6 +21,9 @@ class ReservationService
         // Validar anticipación mínima de 15 minutos
         $this->validateAdvanceTime($date, $time);
         
+        // Validar que el usuario no tenga otra reserva en el mismo horario
+        $this->validateUserAvailability($userId, $date, $time);
+        
         // Buscar ubicación y mesas disponibles
         $assignedData = $this->findAvailableTablesWithLocation($date, $time, $partySize);
         
@@ -396,5 +399,32 @@ class ReservationService
         $this->clearAvailabilityCache($reservation->location, $reservationDate);
         
         return $reservation->fresh('tables');
+    }
+
+    /**
+     * Validar que el usuario no tenga otra reserva que solape en el mismo horario
+     */
+    protected function validateUserAvailability(int $userId, string $date, string $time): void
+    {
+        $newStart = Carbon::parse("$date $time");
+        $newEnd = $newStart->copy()->addMinutes(Reservation::DEFAULT_DURATION_MINUTES);
+        
+        // Buscar reservas confirmadas del usuario para esa fecha
+        $userReservations = Reservation::where('user_id', $userId)
+            ->whereRaw('DATE(reservation_date) = ?', [$date])
+            ->where('status', 'confirmed')
+            ->get();
+        
+        foreach ($userReservations as $existing) {
+            $existingDate = Carbon::parse($existing->reservation_date)->format('Y-m-d');
+            $existingStart = Carbon::parse("{$existingDate} {$existing->reservation_time}");
+            $existingEnd = $existingStart->copy()->addMinutes($existing->duration_minutes);
+            
+            // Verificar solapamiento: nueva.inicio < existente.fin AND existente.inicio < nueva.fin
+            if ($newStart->lt($existingEnd) && $existingStart->lt($newEnd)) {
+                $existingRange = $existingStart->format('H:i') . ' - ' . $existingEnd->format('H:i');
+                throw new \Exception("Ya tienes una reserva confirmada en este horario ({$existingRange})");
+            }
+        }
     }
 }
