@@ -8,30 +8,30 @@
 
 Sistema completo de gestión de reservas con **asignación automática inteligente de mesas**, algoritmo de optimización matemática y validaciones de negocio robustas.
 
-## 🚀 Demo en Vivo
+## Demo en Vivo
 
-**🌐 API Producción:** https://challenge-production-637e.up.railway.app
+**API Producción:** https://challenge-production-637e.up.railway.app
 
-**📚 Documentación Interactiva (Swagger UI):** https://challenge-production-637e.up.railway.app/api/documentation
+**Documentación Interactiva (Swagger UI):** https://challenge-production-637e.up.railway.app/api/documentation
 
-> ✅ La API incluye datos precargados: 20 mesas en 4 ubicaciones (A, B, C, D) y 25 usuarios de prueba.
-
----
-
-## 📖 Tabla de Contenidos
-
-1. [Inicio Rápido con Swagger](#-inicio-rápido-guía-paso-a-paso)
-2. [Características Destacadas](#-características-destacadas)
-3. [Endpoints de la API](#-endpoints-de-la-api)
-4. [Casos de Prueba](#-casos-de-prueba-completos)
-5. [Arquitectura Técnica](#-arquitectura-técnica)
-6. [Testing](#-testing)
-7. [Instalación Local](#-instalación-local-opcional)
-8. [Decisiones Técnicas](#-decisiones-técnicas)
+> La API incluye datos precargados: 20 mesas en 4 ubicaciones (A, B, C, D) y 25 usuarios de prueba.
 
 ---
 
-## 🎯 Inicio Rápido: Guía Paso a Paso
+## Tabla de Contenidos
+
+1. [Inicio Rápido con Swagger](#inicio-rápido-guía-paso-a-paso)
+2. [Características Destacadas](#características-destacadas)
+3. [Endpoints de la API](#endpoints-de-la-api)
+4. [Casos de Prueba](#casos-de-prueba-completos)
+5. [Arquitectura Técnica](#arquitectura-técnica)
+6. [Testing](#testing)
+7. [Instalación Local](#instalación-local-opcional)
+8. [Decisiones Técnicas](#decisiones-técnicas)
+
+---
+
+## Inicio Rápido: Guía Paso a Paso
 
 La forma más rápida de probar la API es usando Swagger UI. Aquí está el paso a paso completo:
 
@@ -185,7 +185,7 @@ Verás la interfaz interactiva con todos los endpoints documentados.
    }
    ```
 
-### **✅ ¡Listo! Has probado el flujo completo**
+### **¡Listo! Has probado el flujo completo**
 
 Ahora puedes experimentar con:
 - Reservas para más personas (probar combinación de mesas)
@@ -195,9 +195,9 @@ Ahora puedes experimentar con:
 
 ---
 
-## ✨ Características Destacadas
+## Características Destacadas
 
-### 🎯 **Algoritmo de Optimización Inteligente**
+### **Algoritmo de Optimización Inteligente**
 - **Combinación automática** de hasta 3 mesas por reserva
 - **Selección óptima** basada en:
   1. Menor desperdicio de capacidad
@@ -205,40 +205,40 @@ Ahora puedes experimentar con:
   3. Preferencia por mesas de menor capacidad individual
 - **Ejemplo:** Para 10 personas, elige `[Mesa de 6 + Mesa de 4]` en lugar de `[Mesa de 6 + Mesa de 2 + Mesa de 2]`
 
-### 🚫 **Prevención de Solapamientos**
+### **Prevención de Solapamientos**
 - **Doble validación:** Mesas no disponibles + Usuario sin reservas conflictivas
 - **Detección automática** de horarios que se superponen considerando duración (2 horas)
 - **Ejemplo:** Usuario con reserva 18:00-20:00 no puede crear otra a las 19:00
 
-### ⏰ **Validación de Horarios por Día**
+### **Validación de Horarios por Día**
 - **Lunes a Viernes:** 10:00 - 24:00
 - **Sábado:** 22:00 - 02:00 (cruza medianoche)
 - **Domingo:** 12:00 - 16:00
 - **Anticipación mínima:** 15 minutos
 
-### 📍 **Asignación Automática de Ubicación**
+### **Asignación Automática de Ubicación**
 - **Orden de prioridad:** A → B → C → D
 - **Salto inteligente:** Si ubicación no tiene capacidad, prueba con siguiente automáticamente
 - **Transparente:** El usuario solo indica cantidad de personas, el sistema decide la ubicación óptima
 
-### ❌ **Cancelación con Validaciones**
+### **Cancelación con Validaciones**
 - **Solo reservas futuras:** No permite cancelar reservas pasadas
 - **No duplicados:** Detecta intentos de cancelar reservas ya canceladas
 - **Liberación automática:** Las mesas quedan disponibles inmediatamente
 
-### ⚡ **Cache Inteligente**
+### **Cache Inteligente**
 - **TTL:** 5 minutos por consulta de disponibilidad
 - **Invalidación automática:** Al crear o cancelar cualquier reserva
 - **Reduce carga:** ~85% menos queries a la base de datos en consultas repetidas
 
-### 📊 **Consulta Optimizada por Fecha**
+### **Consulta Optimizada por Fecha**
 - **Una sola query SQL** con JOINs (evita N+1 problem)
 - **Agrupación por ubicación** para facilitar visualización
 - **Información completa:** Usuario, horario, mesas asignadas en un solo request
 
 ---
 
-## 🔌 Endpoints de la API
+## Endpoints de la API
 
 | Método | Ruta | Descripción | Autenticación |
 |--------|------|-------------|---------------|
@@ -253,7 +253,7 @@ Ahora puedes experimentar con:
 
 ---
 
-## 🧪 Casos de Prueba Completos
+## Casos de Prueba Completos
 ```php
 test_combina_mesas_eficientemente_para_10_personas()
 ```
@@ -322,9 +322,9 @@ POST /api/reservations
 ```
 
 **Validaciones:**
-- ✅ Asigna ubicación A (primera disponible)
-- ✅ Selecciona 1 mesa de capacidad 2 (ajuste perfecto)
-- ✅ Duración predeterminada de 2 horas
+-  Asigna ubicación A (primera disponible)
+-  Selecciona 1 mesa de capacidad 2 (ajuste perfecto)
+-  Duración predeterminada de 2 horas
 
 ---
 
@@ -357,8 +357,8 @@ POST /api/reservations
 ```
 
 **Análisis del algoritmo:**
-- ❌ **NO selecciona:** `[2, 2, 6]` (capacidad total 10, pero usa 3 mesas)
-- ✅ **SÍ selecciona:** `[4, 6]` (capacidad total 10, usa solo 2 mesas)
+-  **NO selecciona:** `[2, 2, 6]` (capacidad total 10, pero usa 3 mesas)
+-  **SÍ selecciona:** `[4, 6]` (capacidad total 10, usa solo 2 mesas)
 - **Criterio de priorización:** Ambas opciones tienen exceso 0, pero `[4, 6]` minimiza la cantidad de mesas
 
 **Este caso prueba la lógica central del challenge.**
@@ -412,13 +412,13 @@ POST /api/reservations
   "reservation_time": "20:30",
   "party_size": 2
 }
-# Response: 201 Created ✅
+# Response: 201 Created 
 ```
 
 **Validaciones:**
-- ✅ Detecta solapamiento: 19:00-21:00 se cruza con 18:00-20:00
-- ✅ Permite reservas consecutivas: 20:30-22:30 no solapa con 18:00-20:00
-- ✅ Usuarios diferentes pueden reservar en el mismo horario
+-  Detecta solapamiento: 19:00-21:00 se cruza con 18:00-20:00
+-  Permite reservas consecutivas: 20:30-22:30 no solapa con 18:00-20:00
+-  Usuarios diferentes pueden reservar en el mismo horario
 
 ---
 
@@ -454,7 +454,7 @@ POST /api/reservations
   "reservation_time": "23:00",
   "party_size": 2
 }
-# Response: 201 Created ✅ (Sábado permite 22:00-02:00)
+# Response: 201 Created  (Sábado permite 22:00-02:00)
 ```
 
 ---
@@ -493,7 +493,7 @@ POST /api/reservations
 ```json
 {
   "data": {
-    "location": "B",  # Saltó a ubicación B ✅
+    "location": "B",  # Saltó a ubicación B 
     "tables": [
       {"capacity": 6},
       {"capacity": 4},
@@ -504,9 +504,9 @@ POST /api/reservations
 ```
 
 **Validaciones:**
-- ✅ No asigna ubicación A (capacidad insuficiente)
-- ✅ Evalúa automáticamente ubicación B
-- ✅ Encuentra combinación óptima en B
+-  No asigna ubicación A (capacidad insuficiente)
+-  Evalúa automáticamente ubicación B
+-  Encuentra combinación óptima en B
 
 ---
 
@@ -588,9 +588,9 @@ GET /api/reservations/by-date?date=2025-12-25
 ```
 
 **Características:**
-- ✅ Una sola query SQL (sin N+1 problem)
-- ✅ Agrupación por ubicación para fácil visualización
-- ✅ Información de mesas concatenada: "A-1, A-3"
+-  Una sola query SQL (sin N+1 problem)
+-  Agrupación por ubicación para fácil visualización
+-  Información de mesas concatenada: "A-1, A-3"
 
 ---
 
@@ -629,13 +629,13 @@ PATCH /api/reservations/42/cancel
 ```
 
 **Validaciones automáticas:**
-- ✅ No permite cancelar reservas pasadas
-- ✅ No permite cancelar reservas ya canceladas
-- ✅ Invalida cache de disponibilidad automáticamente
+-  No permite cancelar reservas pasadas
+-  No permite cancelar reservas ya canceladas
+-  Invalida cache de disponibilidad automáticamente
 
 ---
 
-## 🏗️ Arquitectura Técnica
+## Arquitectura Técnica
 
 ### Algoritmo de Selección Óptima de Mesas
 
@@ -671,9 +671,9 @@ El sistema implementa un algoritmo de fuerza bruta optimizado que **garantiza la
 
 | Combinación | Capacidad Total | Exceso | Capacidad Máxima | ¿Seleccionada? |
 |-------------|-----------------|--------|------------------|----------------|
-| `[6, 2, 2]` | 10 | 0 | 6 | ❌ |
-| `[6, 4]` | 10 | 0 | 6 | ✅ (menor cantidad de mesas) |
-| `[4, 4, 2]` | 10 | 0 | 4 | ❌ |
+| `[6, 2, 2]` | 10 | 0 | 6 |  |
+| `[6, 4]` | 10 | 0 | 6 |  (menor cantidad de mesas) |
+| `[4, 4, 2]` | 10 | 0 | 4 |  |
 
 **Complejidad:**
 - Tiempo: O(n³) donde n = mesas disponibles por ubicación (máximo 5)
@@ -724,10 +724,10 @@ Reserva existente:  [========]
                     18:00   20:00
 
 Nueva reserva:
-  SOLAPA:        [====]      ✅ Detectado
+  SOLAPA:        [====]       Detectado
                  17:00 19:00
 
-  NO SOLAPA:            [====]  ✅ Permitido
+  NO SOLAPA:            [====]   Permitido
                         20:00 22:00
 ```
 
@@ -757,14 +757,14 @@ ORDER BY r.location, r.reservation_time
 ```
 
 **Ventajas:**
-- ✅ **Evita N+1 problem:** 1 query en lugar de N queries
-- ✅ **Agrupación nativa:** `GROUP BY location` en la base de datos
-- ✅ **Concatenación eficiente:** `GROUP_CONCAT` combina mesas en una sola columna
-- ✅ **Performance:** <50ms promedio para 100+ reservas
+-  **Evita N+1 problem:** 1 query en lugar de N queries
+-  **Agrupación nativa:** `GROUP BY location` en la base de datos
+-  **Concatenación eficiente:** `GROUP_CONCAT` combina mesas en una sola columna
+-  **Performance:** <50ms promedio para 100+ reservas
 
 **Comparación con enfoque ineficiente:**
 ```php
-// ❌ MALO: N+1 Problem
+//  MALO: N+1 Problem
 $reservas = Reservation::where('date', $date)->get();
 foreach ($reservas as $r) {
     $r->user;  // Query adicional
@@ -772,7 +772,7 @@ foreach ($reservas as $r) {
 }
 // Total: 1 + (N * 2) queries
 
-// ✅ BUENO: Query única
+//  BUENO: Query única
 $reservas = DB::table('reservations')
     ->join('users', ...)
     ->join('tables', ...)
@@ -816,7 +816,7 @@ Cache::tags(["location:A", "date:2025-12-25"])->flush();
 
 ---
 
-## 🧪 Testing
+## Testing
 
 **Suite completa:** 30 tests con 121 assertions
 
@@ -834,46 +834,46 @@ PASS  Tests\Feature\ReservationTest
 ### Cobertura de Tests
 
 #### **Validaciones de Horario (6 tests)**
-- ✅ Acepta horarios válidos lunes-viernes (10:00-24:00)
-- ✅ Rechaza horarios inválidos antes de 10 AM
-- ✅ Acepta horarios sábado (22:00-02:00)
-- ✅ Rechaza horarios sábado fuera de rango
-- ✅ Acepta horarios domingo (12:00-16:00)
-- ✅ Rechaza horarios domingo fuera de rango
+-  Acepta horarios válidos lunes-viernes (10:00-24:00)
+-  Rechaza horarios inválidos antes de 10 AM
+-  Acepta horarios sábado (22:00-02:00)
+-  Rechaza horarios sábado fuera de rango
+-  Acepta horarios domingo (12:00-16:00)
+-  Rechaza horarios domingo fuera de rango
 
 #### **Algoritmo de Combinación de Mesas (8 tests)**
-- ✅ Combina 2 mesas para 8 personas
-- ✅ Combina 3 mesas para 12 personas
-- ✅ **Selección óptima para 10 personas** (caso crítico)
-- ✅ Asigna ubicación por orden (A → B → C → D)
-- ✅ Salta ubicación si capacidad insuficiente
-- ✅ Asigna 12 personas a ubicación A si tiene capacidad
-- ✅ Rechaza cuando no hay disponibilidad en ninguna ubicación
-- ✅ Mantiene orden de ubicaciones con capacidad empatada
+-  Combina 2 mesas para 8 personas
+-  Combina 3 mesas para 12 personas
+-  **Selección óptima para 10 personas** (caso crítico)
+-  Asigna ubicación por orden (A → B → C → D)
+-  Salta ubicación si capacidad insuficiente
+-  Asigna 12 personas a ubicación A si tiene capacidad
+-  Rechaza cuando no hay disponibilidad en ninguna ubicación
+-  Mantiene orden de ubicaciones con capacidad empatada
 
 #### **Prevención de Solapamientos (4 tests)**
-- ✅ Previene solapamiento de mesas ocupadas
-- ✅ **Previene solapamiento del mismo usuario** (nuevo)
-- ✅ **Permite reservas consecutivas sin overlap** (nuevo)
-- ✅ **Permite diferentes usuarios en mismo horario** (nuevo)
+-  Previene solapamiento de mesas ocupadas
+-  **Previene solapamiento del mismo usuario** (nuevo)
+-  **Permite reservas consecutivas sin overlap** (nuevo)
+-  **Permite diferentes usuarios en mismo horario** (nuevo)
 
 #### **Cancelación de Reservas (5 tests)**
-- ✅ Puede cancelar reserva futura
-- ✅ No puede cancelar reserva inexistente
-- ✅ No puede cancelar reserva ya cancelada
-- ✅ No puede cancelar reserva pasada
-- ✅ Cancelación libera mesas reservadas
+-  Puede cancelar reserva futura
+-  No puede cancelar reserva inexistente
+-  No puede cancelar reserva ya cancelada
+-  No puede cancelar reserva pasada
+-  Cancelación libera mesas reservadas
 
 #### **Validaciones de Entrada (3 tests)**
-- ✅ Valida campos requeridos
-- ✅ Rechaza party_size inválido
-- ✅ Rechaza usuario inexistente
+-  Valida campos requeridos
+-  Rechaza party_size inválido
+-  Rechaza usuario inexistente
 
 #### **Funcionalidad General (4 tests)**
-- ✅ Duración default es 2 horas
-- ✅ Endpoint de disponibilidad marca mesas ocupadas
-- ✅ Listado por fecha agrupa por ubicación
-- ✅ Cache de disponibilidad se invalida correctamente
+-  Duración default es 2 horas
+-  Endpoint de disponibilidad marca mesas ocupadas
+-  Listado por fecha agrupa por ubicación
+-  Cache de disponibilidad se invalida correctamente
 
 ### Test Destacado: Algoritmo de Optimización
 
@@ -909,7 +909,7 @@ Este test valida el corazón del challenge: **selección óptima de mesas**.
 
 ---
 
-## 📊 Estructura de Datos
+## Estructura de Datos
 
 ### Distribución de Mesas
 
@@ -966,7 +966,7 @@ Este test valida el corazón del challenge: **selección óptima de mesas**.
 
 ---
 
-## 💻 Instalación Local (Opcional)
+## Instalación Local (Opcional)
 
 Si deseas ejecutar el proyecto en tu entorno local:
 
@@ -1148,7 +1148,7 @@ GROUP BY r.id, r.location
 ORDER BY r.location, r.reservation_time
 ```
 
-## 🛠️ Stack Tecnológico
+## Stack Tecnológico
 
 | Componente | Tecnología | Versión |
 |------------|------------|---------|
@@ -1163,7 +1163,7 @@ ORDER BY r.location, r.reservation_time
 
 ---
 
-## 🎓 Decisiones Técnicas
+## Decisiones Técnicas
 
 Esta sección documenta las decisiones arquitectónicas tomadas durante el desarrollo.
 
@@ -1172,11 +1172,11 @@ Esta sección documenta las decisiones arquitectónicas tomadas durante el desar
 **Decisión:** Usar SQLite en lugar de PostgreSQL/MySQL
 
 **Justificación:**
-- ✅ **Simplicidad operativa:** Cero configuración de infraestructura externa
-- ✅ **Suficiente para el volumen:** <10K reservas/mes estimado
-- ✅ **Facilita replicación:** Cualquier revisor puede clonar y ejecutar sin dependencias
-- ✅ **Performance adecuada:** <100ms respuesta promedio
-- ⚠️ **Limitación conocida:** No escala para alta concurrencia (>100 writes/seg)
+-  **Simplicidad operativa:** Cero configuración de infraestructura externa
+-  **Suficiente para el volumen:** <10K reservas/mes estimado
+-  **Facilita replicación:** Cualquier revisor puede clonar y ejecutar sin dependencias
+-  **Performance adecuada:** <100ms respuesta promedio
+-  **Limitación conocida:** No escala para alta concurrencia (>100 writes/seg)
 
 **Alternativa considerada:** PostgreSQL en Railway con volumen persistente
 - Descartada por overhead de configuración vs beneficio en esta fase
@@ -1188,10 +1188,10 @@ Esta sección documenta las decisiones arquitectónicas tomadas durante el desar
 **Decisión:** Evaluar todas las combinaciones posibles en lugar de usar heurística greedy
 
 **Justificación:**
-- ✅ **Garantía matemática:** Siempre encuentra la solución óptima
-- ✅ **Complejidad aceptable:** O(n³) con n≤5 mesas → máximo 125 iteraciones
-- ✅ **Casos edge correctos:** Distingue entre `[4,6]` y `[2,2,6]` para 10 personas
-- ⚠️ **Trade-off:** Ligeramente más lento que greedy (45ms vs 30ms)
+-  **Garantía matemática:** Siempre encuentra la solución óptima
+-  **Complejidad aceptable:** O(n³) con n≤5 mesas → máximo 125 iteraciones
+-  **Casos edge correctos:** Distingue entre `[4,6]` y `[2,2,6]` para 10 personas
+-  **Trade-off:** Ligeramente más lento que greedy (45ms vs 30ms)
 
 **Alternativa considerada:** Algoritmo greedy (seleccionar mesa más ajustada primero)
 - Descartado porque no garantiza óptimo global, solo óptimo local
@@ -1203,10 +1203,10 @@ Esta sección documenta las decisiones arquitectónicas tomadas durante el desar
 **Decisión:** Usar driver `array` en lugar de Redis/Memcached
 
 **Justificación:**
-- ✅ **Sin dependencias:** No requiere servicios externos
-- ✅ **Impacto medible:** Reduce ~85% de queries repetidas
-- ✅ **Simplicidad:** Invalidación con `Cache::flush()`
-- ⚠️ **Limitación:** Se reinicia en cada deploy (aceptable para este volumen)
+-  **Sin dependencias:** No requiere servicios externos
+-  **Impacto medible:** Reduce ~85% de queries repetidas
+-  **Simplicidad:** Invalidación con `Cache::flush()`
+-  **Limitación:** Se reinicia en cada deploy (aceptable para este volumen)
 
 **Migración futura a Redis:**
 ```php
@@ -1221,9 +1221,9 @@ Cache::tags(['location:A', 'date:2025-12-25'])->flush();
 **Decisión:** Implementar validación de solapamiento tanto para mesas como para usuario
 
 **Justificación:**
-- ✅ **Previene conflictos lógicos:** Usuario no puede estar en 2 lugares simultáneamente
-- ✅ **Mejora UX:** Mensaje de error descriptivo ("Ya tienes reserva 18:00-20:00")
-- ✅ **Flexibilidad:** Permite múltiples usuarios en mismo horario (caso real)
+-  **Previene conflictos lógicos:** Usuario no puede estar en 2 lugares simultáneamente
+-  **Mejora UX:** Mensaje de error descriptivo ("Ya tienes reserva 18:00-20:00")
+-  **Flexibilidad:** Permite múltiples usuarios en mismo horario (caso real)
 
 **Implementado en:** [`ReservationService::validateUserAvailability()`](app/Services/ReservationService.php)
 
@@ -1234,9 +1234,9 @@ Cache::tags(['location:A', 'date:2025-12-25'])->flush();
 **Decisión:** Lógica de negocio en `ReservationService` en lugar de Controller
 
 **Justificación:**
-- ✅ **Single Responsibility:** Controller maneja HTTP, Service maneja negocio
-- ✅ **Testeable:** Tests unitarios sin HTTP layer
-- ✅ **Reutilizable:** Misma lógica para API, CLI, Jobs
+-  **Single Responsibility:** Controller maneja HTTP, Service maneja negocio
+-  **Testeable:** Tests unitarios sin HTTP layer
+-  **Reutilizable:** Misma lógica para API, CLI, Jobs
 
 **Flujo arquitectónico:**
 ```
@@ -1252,9 +1252,9 @@ HTTP Request → ReservationController → ReservationService → Database
 **Decisión:** Recrear base de datos en cada test
 
 **Justificación:**
-- ✅ **Aislamiento total:** Sin efectos secundarios entre tests
-- ✅ **Determinismo:** Resultados predecibles
-- ✅ **Velocidad:** SQLite en memoria hace refresh rápido (1.4s para 30 tests)
+-  **Aislamiento total:** Sin efectos secundarios entre tests
+-  **Determinismo:** Resultados predecibles
+-  **Velocidad:** SQLite en memoria hace refresh rápido (1.4s para 30 tests)
 
 **Setup automático:**
 ```php
@@ -1273,10 +1273,10 @@ protected function setUp(): void {
 **Decisión:** Usar L5-Swagger con anotaciones inline
 
 **Justificación:**
-- ✅ **Documentación viva:** Se genera desde código real
-- ✅ **Interfaz interactiva:** Reemplaza necesidad de Postman/Insomnia
-- ✅ **Estándar OpenAPI:** Compatible con herramientas externas
-- ✅ **Testing facilitado:** Evaluadores pueden probar sin setup
+-  **Documentación viva:** Se genera desde código real
+-  **Interfaz interactiva:** Reemplaza necesidad de Postman/Insomnia
+-  **Estándar OpenAPI:** Compatible con herramientas externas
+-  **Testing facilitado:** Evaluadores pueden probar sin setup
 
 **Ejemplo de anotación:**
 ```php
@@ -1293,7 +1293,7 @@ public function store(Request $request) { ... }
 
 ---
 
-## 📝 Notas de Implementación
+## Notas de Implementación
 
 ### Mejoras Futuras Posibles
 
@@ -1323,7 +1323,7 @@ Si el proyecto continuara, estas serían las próximas funcionalidades:
 
 ---
 
-## 👤 Autor
+## Autor
 
 **Desarrollado por:** Federico Talmon  
 **Fecha:** Diciembre 2025  
@@ -1332,6 +1332,6 @@ Si el proyecto continuara, estas serían las próximas funcionalidades:
 
 ---
 
-## 📄 Licencia
+## Licencia
 
 Este proyecto fue desarrollado como parte de un challenge técnico.
